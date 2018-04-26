@@ -139,7 +139,6 @@
     left: 0;
     overflow: auto;
     -webkit-overflow-scrolling: touch;
-    background-color: #ddd
   }
   .yo-scroll .inner {
     position: absolute;
