@@ -3,7 +3,8 @@ import Router from 'vue-router'
 // import HelloWorld from '@/components/HelloWorld'
 import Index from '@/views/index/index'
 import Manage from '@/views/manage/manage'
-import GoodsList from '@/views/goodsList/goodsList'
+import GoodsList from '@/views/goods/goodsList'
+import GoodsDetails from '@/views/goods/goodsDetails'
 
 Vue.use(Router)
 
@@ -23,6 +24,11 @@ export default new Router({
       path: '/GoodsList',
       name: 'GoodsList',
       component: GoodsList
+    },
+    {
+      path: '/GoodsDetails',
+      name: 'GoodsDetails',
+      component: GoodsDetails
     },
     {
       path: '/manage',

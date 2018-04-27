@@ -19,6 +19,9 @@
           <span>加载中……</span>
         </slot>
       </footer>
+      <div class="no-more">
+          <span>没有更多了</span>
+      </div>
     </section>
   </div>
 </template>
@@ -187,5 +190,11 @@
     align-items: center;
     justify-content: center;
     text-align: center;
+  }
+  .yo-scroll .no-more {
+    height: 3rem;
+    line-height: 3rem;
+    text-align: center;
+    display: none;
   }
 </style>
