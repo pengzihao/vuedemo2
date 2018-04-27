@@ -1,7 +1,7 @@
 <template>
   <div class="container">
     <div class="choiceAreaBtn" @click="showLargeArea">
-      课程城区: <input type="text" v-model="areaText" readonly="readonly" value="">
+      课程城区: <input type="text" v-model="areaText" disabled="disabled" value="">
     </div>
     <div v-if="largeAreaBox" class="largeAreaPopup">
       <div class="areaPopupCont">
@@ -14,7 +14,7 @@
         </div>
       </div>
     </div>
-    <PullUp-Scroll :on-refresh="onRefresh" :on-infinite="onInfinite">
+    <PullUp-Scroll :on-refresh="onRefresh" :enableInfinite="enableInfinite" :on-infinite="onInfinite">
       <div class="goodsBox" v-for="item in downdata.data">
         <div class="goodsImg">
           <img :src="item.courseBackgroundImg" alt="">
@@ -46,19 +46,18 @@
         largeAreaList: [],
         areaText: '', //场馆地址
         venueId: '', //场馆ID
-        counter: 2, //默认已经显示出15条数据 count等于一是让从16条开始加载
+        counter: 1, //默认已经显示出15条数据 count等于一是让从16条开始加载
         num: 10,  // 一次显示多少条
-        pageStart: 0, // 开始页数
-        pageEnd: 0, // 结束页数
-        listdata: [], // 下拉更新数据存放数组
         downdata: [],  // 上拉更多的数据存放数组
-        infiniteLoading: true
+        enableInfinite: true //是否开启上拉加载
       }
     },
 
     methods: {
       //控制选择大区弹框显示
       showLargeArea() {
+        //获取场馆信息
+        this.largeAreaData()
         this.largeAreaBox = true
       },
       //获取场馆大区
@@ -81,13 +80,14 @@
           this.goodsListData()
           this.largeAreaBox = false
         }
-        this.infiniteLoading = true
       },
       //进入默认获取第一页信息
       goodsListData() { //获取商品信息
+        console.log(1);
+        this.counter = 1
         this.$axios.get('/course/courseList', {
           params: {
-            page: 1,
+            page: this.counter,
             size: 10,
             teachingVenueId: this.venueId
           }
@@ -98,26 +98,37 @@
             //存储用户选中的课程城区和id
             window.localStorage.setItem('areaText', this.areaText)
             window.localStorage.setItem('teachingVenueId', this.venueId)
+            //页面总页数减去当前页为0,没有数据了
+            if(obj.pages-this.counter <= 0){
+
+              // //隐藏加载更多文字
+              this.$el.querySelector('.load-more').style.display = 'none';
+              //关闭上拉加载（数据加载完成后会关闭，点击场馆切换后需要开启）
+              this.enableInfinite = false
+            }else {
+              this.$el.querySelector('.load-more').style.display = 'block';
+               //开启上拉加载（数据加载完成后会关闭，点击场馆切换后需要开启）
+              this.enableInfinite = true
+            }
           }
 
-          if(obj.pages-this.counter <= 0){
-            this.$el.querySelector('.load-more').style.display = 'none';
-          }
         }).catch((err) => {
           console.log('error');
         })
+
       },
       //选择大区弹框关闭
       closeBtn() {
-        //关闭为没有选中，传0返回所有
+        //关闭为没有选中，传0返回所有商品
         this.areaText = '未选择课程城区'
         this.venueId = 0
         this.goodsListData()
         this.largeAreaBox = false
       },
+
       //下拉刷新
       onRefresh(done) {
-        console.log(done)
+        console.log(2)
         this.counter = 1
         this.$axios.get('/course/courseList',{
           params: {
@@ -129,18 +140,23 @@
           if(res.data.code == '200'){
             var obj = res.data.data
             this.downdata.data = obj.data
+            if(obj.pages-this.counter >= 1){
+              //隐藏加载更多文字
+              this.$el.querySelector('.load-more').style.display = 'block';
+            }
+            //开启上拉加载（数据加载完成后会关闭，点击场馆切换后需要开启）
+            this.enableInfinite = true
           }
-
         }).catch( (err) => {
           console.log('error');
         });
+        done() // call done 返回顶部
 
-        console.log(this.downdata.data)
-        done() // call done
       },
       //上拉加载更多
       onInfinite(done) {
-        console.log(done)
+        console.log(3)
+        this.counter++;
         this.$axios.get('/course/courseList',{
           params: {
             page: this.counter,
@@ -151,35 +167,38 @@
           if(res.data.code == '200'){
             var dataList = this.downdata.data
             var obj = res.data.data
+            //获取到数据拼接在尾部显示
             this.downdata.data = dataList.concat(obj.data)
-            done() // call done
+            //页面总页数减去当前页为0,没有数据了
              if(obj.pages-this.counter <= 0){
                this.$el.querySelector('.load-more').style.display = 'none';
-             }
-          }
-          this.counter++;
-          console.log(this.downdata.data)
+               //关闭上拉加载（数据加载完成后会关闭，点击场馆切换后需要开启）
+               this.enableInfinite = false
+             }else {
 
+             }
+            done() //阻止异步多次请求数据
+          }
         }).catch( (err) => {
           console.log('error');
         });
+
       }
     },
     //初始化页面
     created() {
-      //判断用户有没有选中课程城区，有就获取显示
+      //判断用户有没有选中课程城区，有就获取缓存中存储的（没有就默认场馆id默认为0 （返回所有数据））
       var venueId = window.localStorage.getItem('teachingVenueId')
       if (venueId == undefined || venueId == '' || venueId == null) {
+        //获取场馆大区
+        this.largeAreaData()
         this.largeAreaBox = true
-        this.venueId = 0
-        this.goodsListData()
       } else {
         this.areaText = window.localStorage.getItem('areaText')
         this.venueId = venueId
         this.goodsListData()
       }
-      //获取场馆大区
-      this.largeAreaData()
+
     }
   }
 </script>
@@ -208,6 +227,12 @@
     color: #ffffff;
     font-size: 16px;
     width: 60%;
+  }
+  .choiceAreaBtn input[disabled],input:disabled {
+    color: #ffffff !important;
+    -webkit-text-fill-color: #ffffff;
+    opacity: 1;
+    -webkit-opacity: 1;
   }
 
   .largeAreaPopup {

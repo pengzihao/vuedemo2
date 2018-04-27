@@ -90,32 +90,37 @@
           return
         }
         if (this.top >= this.offset) { // do refresh
+          //下拉到一定高度执行下拉函数
           this.refresh()
         } else { // cancel refresh
           this.state = 0
           this.top = 0
         }
       },
+      //下拉后事件
       refresh() {
         this.state = 2
         this.top = this.offset
         this.onRefresh(this.refreshDone)
       },
+      //下拉完成后返回顶部
       refreshDone() {
         this.state = 0
         this.top = 0
       },
-
+      //上拉完成后执行
       infinite() {
         this.infiniteLoading = true
         this.onInfinite(this.infiniteDone)
       },
-
+      //数据请求完成后回调（防止重复加载）
       infiniteDone() {
         this.infiniteLoading = false
       },
-
+      //上拉事件
       onScroll(e) {
+        //this.enableInfinite （是否开启上拉加载事件）
+        //this.infiniteLoading （阻止重复加载请求数据）
         if (!this.enableInfinite || this.infiniteLoading) {
           return
         }
@@ -125,7 +130,7 @@
         let ptrHeight = this.onRefresh ? this.$el.querySelector('.pull-refresh').clientHeight : 0
         let infiniteHeight = this.$el.querySelector('.load-more').clientHeight
         let bottom = innerHeight - outerHeight - scrollTop - ptrHeight
-        if (bottom < infiniteHeight) this.infinite()
+        if (bottom < infiniteHeight) this.infinite() //上拉加载更多
       }
     }
   }
@@ -133,12 +138,15 @@
 <style>
   .yo-scroll {
     position: absolute;
-    top: 2.5rem;
+    top: 3rem;
     right: 0;
     bottom: 0;
     left: 0;
     overflow: auto;
-    -webkit-overflow-scrolling: touch;
+    /*ios滑动回弹（大坑）*/
+    /*-webkit-overflow-scrolling: touch;*/
+    /*ios普通滑动*/
+    /*-webkit-overflow-scrolling: auto;*/
   }
   .yo-scroll .inner {
     position: absolute;
@@ -178,5 +186,6 @@
     display: flex;
     align-items: center;
     justify-content: center;
+    text-align: center;
   }
 </style>
