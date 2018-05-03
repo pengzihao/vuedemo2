@@ -15,7 +15,7 @@
       </div>
     </div>
     <PullUp-Scroll :on-refresh="onRefresh" :enableInfinite="enableInfinite" :on-infinite="onInfinite">
-      <div class="goodsBox" v-for="item in downData.data" @click="jumpGoodsDetails" :id="999">
+      <div class="goodsBox" v-for="item in downData.data" @click="jumpGoodsDetails">
         <input type="hidden" :id="item.courseId">
         <div class="goodsImg">
           <img :src="item.courseBackgroundImg" alt="">
